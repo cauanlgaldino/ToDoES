@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { createTodoService } from '@todo-es/shared'
 import ToDoView from './View/ToDoView'
-import { useToDoPresenter } from './Presenter/ToDoPresenter'
+import { useToDoController } from './Controller/ToDoController'
 
 export default function App() {
   const todoService = useMemo(
@@ -13,7 +13,7 @@ export default function App() {
     [],
   )
 
-  const { viewProps, actions } = useToDoPresenter(todoService)
+  const controller = useToDoController(todoService)
 
-  return <ToDoView viewProps={viewProps} actions={actions} />
+  return <ToDoView controller={controller} />
 }

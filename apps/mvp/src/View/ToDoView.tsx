@@ -1,6 +1,6 @@
 import type { Todo } from '@todo-es/shared'
-import type { DataMode, Filter } from '../Controller/todos.types'
-import type { ToDoController } from '../Controller/ToDoController'
+import type { DataMode, Filter } from '../Presenter/todos.types'
+import type { ToDoActions, ToDoViewProps } from '../Presenter/ToDoPresenter'
 import '../App.css'
 
 function normalizeTitle(value: string) {
@@ -11,7 +11,13 @@ function formatDateTime(ts: number) {
   return new Date(ts).toLocaleString('en-US')
 }
 
-export default function ToDoView({ controller }: { controller: ToDoController }) {
+export default function ToDoView({
+  viewProps,
+  actions,
+}: {
+  viewProps: ToDoViewProps
+  actions: ToDoActions
+}) {
   async function onAdd() {
     const raw = window.prompt('New task title:')
     if (raw == null) return
@@ -20,7 +26,7 @@ export default function ToDoView({ controller }: { controller: ToDoController })
     if (!title) return
 
     try {
-      await controller.create(title)
+      await actions.add(title)
     } catch (err) {
       console.error(err)
       window.alert('Erro ao criar tarefa. Veja o console.')
@@ -29,7 +35,7 @@ export default function ToDoView({ controller }: { controller: ToDoController })
 
   async function onToggle(id: string) {
     try {
-      await controller.toggle(id)
+      await actions.toggle(id)
     } catch (err) {
       console.error(err)
       window.alert('Erro ao atualizar tarefa. Veja o console.')
@@ -38,7 +44,7 @@ export default function ToDoView({ controller }: { controller: ToDoController })
 
   async function onRemove(id: string) {
     try {
-      await controller.remove(id)
+      await actions.remove(id)
     } catch (err) {
       console.error(err)
       window.alert('Erro ao remover tarefa. Veja o console.')
@@ -53,7 +59,7 @@ export default function ToDoView({ controller }: { controller: ToDoController })
     if (!title) return
 
     try {
-      await controller.edit(todo, title)
+      await actions.edit(todo, title)
     } catch (err) {
       console.error(err)
       window.alert('Erro ao editar tarefa. Veja o console.')
@@ -62,14 +68,14 @@ export default function ToDoView({ controller }: { controller: ToDoController })
 
   return (
     <div className="page">
-      <main className="layout" aria-label="Todo List - MVC">
-        <h1 className="title">ToDo ES - MVC</h1>
+      <main className="layout" aria-label="Todo List - MVP">
+        <h1 className="title">ToDo ES - MVP</h1>
 
         <div className="topbar" aria-label="Actions">
           <select
             className="select"
-            value={controller.mode}
-            onChange={(e) => controller.setMode(e.target.value as DataMode)}
+            value={viewProps.mode}
+            onChange={(e) => actions.setMode(e.target.value as DataMode)}
             aria-label="Data mode"
           >
             <option value="rest">REST (manual)</option>
@@ -78,8 +84,8 @@ export default function ToDoView({ controller }: { controller: ToDoController })
 
           <select
             className="select"
-            value={controller.filter}
-            onChange={(e) => controller.setFilter(e.target.value as Filter)}
+            value={viewProps.filter}
+            onChange={(e) => actions.setFilter(e.target.value as Filter)}
             aria-label="Filter"
           >
             <option value="all">All</option>
@@ -93,25 +99,25 @@ export default function ToDoView({ controller }: { controller: ToDoController })
         </button>
 
         <section className="board" aria-label="Tasks">
-          {controller.mode === 'realtime' && (controller.realtimeStatus || controller.realtimeError) ? (
+          {viewProps.mode === 'realtime' && (viewProps.realtimeStatus || viewProps.realtimeError) ? (
             <p className="empty" style={{ textAlign: 'left', padding: '0 0 10px' }}>
-              <b>Realtime:</b> {controller.realtimeStatus || '…'}
-              {controller.realtimeError ? (
+              <b>Realtime:</b> {viewProps.realtimeStatus || '…'}
+              {viewProps.realtimeError ? (
                 <>
                   <br />
-                  <span>{controller.realtimeError}</span>
+                  <span>{viewProps.realtimeError}</span>
                 </>
               ) : null}
             </p>
           ) : null}
 
-          {controller.isLoading ? (
+          {viewProps.isLoading ? (
             <p className="empty">Loading…</p>
-          ) : controller.visibleTodos.length === 0 ? (
+          ) : viewProps.visibleTodos.length === 0 ? (
             <p className="empty">No tasks in this filter.</p>
           ) : (
             <ul className="list">
-              {controller.visibleTodos.map((todo) => (
+              {viewProps.visibleTodos.map((todo) => (
                 <li key={todo.id} className="card">
                   <label className="check" aria-label="Toggle completed">
                     <input
