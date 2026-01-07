@@ -7,6 +7,9 @@
   ],
   "scripts": {
     "dev:playground": "npm --workspace apps/playground run dev",
-    "build:playground": "npm --workspace apps/playground run build"
+    "build:playground": "npm --workspace apps/playground run build",
+    "dev:mvvm": "npm --workspace apps/mvvm run dev",
+    "dev:mvc": "npm --workspace apps/mvc run dev",
+    "dev:mvp": "npm --workspace apps/mvp run dev"
   }
 }

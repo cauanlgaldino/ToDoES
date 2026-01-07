@@ -7,4 +7,4 @@ export function createSupabaseClient(url: string, anonKey: string): SupabaseClie
 }
 
 // Re-export from todoService.ts to make it available via the main import
-export { createTodoService, type Todo } from './todoService'
+export { createTodoService, type Todo, type TodoService, type RealtimeStatus } from './services/todoService'
