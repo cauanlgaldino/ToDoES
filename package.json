@@ -1,0 +1,12 @@
+{
+  "name": "todoes-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:playground": "npm --workspace apps/playground run dev",
+    "build:playground": "npm --workspace apps/playground run build"
+  }
+}
