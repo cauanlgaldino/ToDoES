@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseClient } from './index'
+import { createSupabaseClient } from '../index'
 
 export type Todo = {
   id: string
