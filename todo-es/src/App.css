@@ -1,42 +1,257 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 56px 16px;
+  display: flex;
+  justify-content: center;
+  background: #0f131b;
+}
+
+.layout {
+  width: min(840px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.title {
+  margin: 0;
   text-align: center;
+  letter-spacing: 0.05em;
+  font-weight: 800;
+  color: #e9eef6;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.primary {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-weight: 700;
+  background: #5b63f2;
+  color: #fff;
+  cursor: pointer;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.primary:hover {
+  filter: brightness(0.99);
+}
+
+.select {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e9eef6;
+  padding: 10px 44px 10px 16px; /* extra right padding for the arrow */
+  font-weight: 700;
+  cursor: pointer;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e9eef6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+
+.select:focus {
+  outline: none;
+  border-color: rgba(91, 99, 242, 0.7);
+}
+
+/* Dropdown menu (options) — browsers vary, but this fixes Chrome/Edge and most cases */
+.select {
+  color-scheme: dark;
+}
+
+.select option {
+  background: #0f131b;
+  color: #e9eef6;
+}
+
+.select option:disabled {
+  color: rgba(233, 238, 246, 0.5);
+}
+
+.board {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.list > li {
+  list-style: none;
+}
+
+.list > li::marker {
+  content: '';
 }
 
 .card {
-  padding: 2em;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 44px 1fr 84px;
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
-.read-the-docs {
-  color: #888;
+.check {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.check__box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  position: relative;
+}
+
+.check input:checked + .check__box {
+  background: #5b63f2;
+  border-color: #5b63f2;
+}
+
+.check input:checked + .check__box::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg);
+}
+
+.content {
+  min-width: 0;
+}
+
+.task {
+  margin: 0;
+  font-weight: 700;
+  color: #e9eef6;
+  word-break: break-word;
+}
+
+.task--done {
+  text-decoration: line-through;
+  color: rgba(233, 238, 246, 0.6);
+}
+
+.dates {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(233, 238, 246, 0.65);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dot {
+  margin: 0 2px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.icon {
+  border: 0;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 16px;
+}
+
+.icon:hover {
+  filter: brightness(1.06);
+}
+
+.empty {
+  margin: 0;
+  text-align: center;
+  color: rgba(233, 238, 246, 0.65);
+  padding: 18px 6px;
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .select {
+    width: 100%;
+  }
+
+  .card {
+    grid-template-columns: 44px 1fr;
+    grid-template-areas:
+      'check content'
+      'check actions';
+  }
+
+  .check {
+    grid-area: check;
+  }
+
+  .content {
+    grid-area: content;
+  }
+
+  .actions {
+    grid-area: actions;
+    justify-content: flex-start;
+  }
 }
