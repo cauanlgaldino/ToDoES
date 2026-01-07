@@ -1,0 +1,13 @@
+{
+  "name": "@todo-es/shared",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.89.0"
+  }
+}
