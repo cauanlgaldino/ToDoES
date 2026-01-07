@@ -1,28 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { todoService, type Todo } from './services/todoService'
 import './App.css'
 
-type Todo = {
-  id: string
-  title: string
-  completed: boolean
-  createdAt: number
-  completedAt: number | null
-}
-
 type Filter = 'all' | 'todo' | 'done'
-
-type TodoRepository = {
-  load: () => Promise<Todo[]>
-  save: (todos: Todo[]) => Promise<void>
-}
-
-function uuid() {
-  // Safari/older browsers fallback
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anyCrypto = crypto as any
-  if (anyCrypto?.randomUUID) return anyCrypto.randomUUID() as string
-  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`
-}
+type DataMode = 'rest' | 'realtime'
 
 function normalizeTitle(value: string) {
   return value.trim().replace(/\s+/g, ' ')
@@ -33,97 +14,70 @@ function formatDateTime(ts: number) {
   return new Date(ts).toLocaleString('en-US')
 }
 
-function getSeedTodos(): Todo[] {
-  const now = Date.now()
-  return [
-    {
-      id: uuid(),
-      title: 'read body language Book ⏰',
-      completed: false,
-      createdAt: now - 1000 * 60 * 60 * 24,
-      completedAt: null,
-    },
-    {
-      id: uuid(),
-      title: 'Make Dinner 🍔',
-      completed: true,
-      createdAt: now - 1000 * 60 * 60 * 2,
-      completedAt: now - 1000 * 60 * 40,
-    },
-    {
-      id: uuid(),
-      title: 'do home work',
-      completed: false,
-      createdAt: now - 1000 * 60 * 20,
-      completedAt: null,
-    },
-  ]
-}
-
-const localStorageRepo: TodoRepository = {
-  async load() {
-    try {
-      const raw = localStorage.getItem('todo-es:todos:v2')
-      if (!raw) return getSeedTodos()
-
-      const parsed = JSON.parse(raw) as Partial<Todo>[]
-      if (!Array.isArray(parsed)) return getSeedTodos()
-
-      // Guard + light migration (completedAt might not exist)
-      return parsed
-        .filter((t) => typeof t.id === 'string' && typeof t.title === 'string')
-        .map((t) => {
-          const createdAt = typeof t.createdAt === 'number' ? t.createdAt : Date.now()
-          const completed = Boolean(t.completed)
-          const completedAt =
-            typeof t.completedAt === 'number'
-              ? t.completedAt
-              : completed
-                ? createdAt
-                : null
-
-          return {
-            id: t.id as string,
-            title: t.title as string,
-            completed,
-            createdAt,
-            completedAt,
-          }
-        })
-    } catch {
-      return getSeedTodos()
-    }
-  },
-  async save(todos) {
-    localStorage.setItem('todo-es:todos:v2', JSON.stringify(todos))
-  },
-}
 
 export default function App() {
-  const repo = localStorageRepo
-
   const [todos, setTodos] = useState<Todo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
+  const [mode, setMode] = useState<DataMode>('rest')
+  const [realtimeStatus, setRealtimeStatus] = useState<string>('')
+  const [realtimeError, setRealtimeError] = useState<string>('')
+
+  async function loadTodos() {
+    setIsLoading(true)
+    try {
+      const list = await todoService.list()
+      setTodos(list)
+    } catch (err) {
+      console.error(err)
+      window.alert('Erro ao carregar tarefas do Supabase. Veja o console.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
+    void loadTodos()
+  }, [])
+
+  useEffect(() => {
+    if (mode !== 'realtime') {
+      setRealtimeStatus('')
+      setRealtimeError('')
+      return
+    }
+
+    // quando entrar no modo realtime, garante que está sincronizado
+    void loadTodos()
+
     let alive = true
-    ;(async () => {
-      const loaded = await repo.load()
-      if (!alive) return
-      setTodos(loaded)
-      setIsLoading(false)
+
+    const unsubscribe = (() => {
+      try {
+        return todoService.subscribeToChanges(
+          () => {
+            void loadTodos()
+          },
+          (status) => {
+            if (!alive) return
+            setRealtimeStatus(status)
+            if (status === 'CHANNEL_ERROR') {
+              setRealtimeError('Realtime channel error (check Supabase Realtime table settings)')
+            }
+          },
+        )
+      } catch (e) {
+        console.error(e)
+        setRealtimeError(e instanceof Error ? e.message : String(e))
+        return () => {}
+      }
     })()
 
     return () => {
       alive = false
+      unsubscribe()
     }
-  }, [repo])
-
-  useEffect(() => {
-    if (isLoading) return
-    void repo.save(todos)
-  }, [todos, isLoading, repo])
+  }, [mode])
 
   const visibleTodos = useMemo(() => {
     switch (filter) {
@@ -136,50 +90,59 @@ export default function App() {
     }
   }, [todos, filter])
 
-  function addTodo() {
+  async function addTodo() {
     const raw = window.prompt('New task title:')
     if (raw == null) return
 
     const title = normalizeTitle(raw)
     if (!title) return
 
-    const todo: Todo = {
-      id: uuid(),
-      title,
-      completed: false,
-      createdAt: Date.now(),
-      completedAt: null,
+    try {
+      await todoService.create(title)
+      await loadTodos() // REST/pull: refresh after action
+    } catch (err) {
+      console.error(err)
+      window.alert('Erro ao criar tarefa. Veja o console.')
     }
-
-    setTodos((prev) => [todo, ...prev])
   }
 
-  function toggleTodo(id: string) {
-    setTodos((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t
-        const nextCompleted = !t.completed
-        return {
-          ...t,
-          completed: nextCompleted,
-          completedAt: nextCompleted ? Date.now() : null,
-        }
-      }),
-    )
+  async function toggleTodo(id: string) {
+    const current = todos.find((t) => t.id === id)
+    if (!current) return
+
+    try {
+      await todoService.toggleCompleted(id, !current.completed)
+      await loadTodos()
+    } catch (err) {
+      console.error(err)
+      window.alert('Erro ao atualizar tarefa. Veja o console.')
+    }
   }
 
-  function removeTodo(id: string) {
-    setTodos((prev) => prev.filter((t) => t.id !== id))
+  async function removeTodo(id: string) {
+    try {
+      await todoService.remove(id)
+      await loadTodos()
+    } catch (err) {
+      console.error(err)
+      window.alert('Erro ao remover tarefa. Veja o console.')
+    }
   }
 
-  function editTodo(todo: Todo) {
+  async function editTodo(todo: Todo) {
     const raw = window.prompt('Edit task title:', todo.title)
     if (raw == null) return
 
     const title = normalizeTitle(raw)
     if (!title) return
-    
-    setTodos((prev) => prev.map((t) => (t.id === todo.id ? { ...t, title } : t)))
+
+    try {
+      await todoService.updateTitle(todo.id, title)
+      await loadTodos()
+    } catch (err) {
+      console.error(err)
+      window.alert('Erro ao editar tarefa. Veja o console.')
+    }
   }
 
   return (
@@ -188,6 +151,16 @@ export default function App() {
         <h1 className="title">ToDo ES</h1>
 
         <div className="topbar" aria-label="Actions">
+          <select
+            className="select"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as DataMode)}
+            aria-label="Data mode"
+          >
+            <option value="rest">REST (manual)</option>
+            <option value="realtime">Realtime (auto)</option>
+          </select>
+
           <button className="primary" type="button" onClick={addTodo}>
             Add Task
           </button>
@@ -205,6 +178,17 @@ export default function App() {
         </div>
 
         <section className="board" aria-label="Tasks">
+          {mode === 'realtime' && (realtimeStatus || realtimeError) ? (
+            <p className="empty" style={{ textAlign: 'left', padding: '0 0 10px' }}>
+              <b>Realtime:</b> {realtimeStatus || '…'}
+              {realtimeError ? (
+                <>
+                  <br />
+                  <span>{realtimeError}</span>
+                </>
+              ) : null}
+            </p>
+          ) : null}
           {isLoading ? (
             <p className="empty">Loading…</p>
           ) : visibleTodos.length === 0 ? (
@@ -217,13 +201,13 @@ export default function App() {
                     <input
                       type="checkbox"
                       checked={todo.completed}
-                      onChange={() => toggleTodo(todo.id)}
+                      onChange={() => void toggleTodo(todo.id)}
                     />
                     <span className="check__box" aria-hidden="true" />
                   </label>
 
                   <div className="content">
-                    <p className={"task" + (todo.completed ? ' task--done' : '')}>
+                    <p className={'task' + (todo.completed ? ' task--done' : '')}>
                       {todo.title}
                     </p>
                     <p className="dates">
@@ -237,7 +221,7 @@ export default function App() {
                     <button
                       className="icon"
                       type="button"
-                      onClick={() => removeTodo(todo.id)}
+                      onClick={() => void removeTodo(todo.id)}
                       aria-label="Delete"
                       title="Delete"
                     >
@@ -246,7 +230,7 @@ export default function App() {
                     <button
                       className="icon"
                       type="button"
-                      onClick={() => editTodo(todo)}
+                      onClick={() => void editTodo(todo)}
                       aria-label="Edit"
                       title="Edit"
                     >
