@@ -1,6 +1,6 @@
 # ToDoES – Comparação Arquitetural entre MVC, MVP e MVVM
 
-Este repositório apresenta a implementação e a análise comparativa das arquiteturas de frontend MVC, MVP e MVVM aplicadas a um mesmo aplicativo ToDo, desenvolvido em React com TypeScript e integrado a um backend implementado na plataforma Supabase.
+Este repositório apresenta a implementação e a análise comparativa das arquiteturas de frontend MVC, MVP e MVVM aplicadas a um mesmo aplicativo ToDo, desenvolvido em React com TypeScript.
 
 O backend foi explorado em dois modelos distintos: REST tradicional e reativo (event-driven). A análise é baseada nas decisões de projeto adotadas, nas dificuldades encontradas durante a implementação e nas consequências práticas observadas no código, conforme proposto no enunciado do trabalho.
 
@@ -24,7 +24,7 @@ A avaliação prioriza evidências práticas obtidas durante a implementação, 
 
 ### MVC (Model–View–Controller)
 
-Na implementação utilizando MVC, a maior parte da lógica concentrou-se nos Controllers, que passaram a acumular chamadas ao Supabase, tratamento de eventos e controle de estado. Na prática, isso gerou forte acoplamento com a View e duplicação de lógica, evidenciando que o MVC se torna artificial e pouco coeso no contexto do React.
+Na implementação utilizando MVC, a maior parte da lógica concentrou-se nos Controllers, que passaram a acumular chamadas, tratamento de eventos e controle de estado. Na prática, isso gerou forte acoplamento com a View e duplicação de lógica, evidenciando que o MVC se torna artificial e pouco coeso no contexto do React.
 
 ### MVP (Model–View–Presenter)
 
@@ -32,7 +32,7 @@ Na arquitetura MVP, a lógica principal foi deslocada para o Presenter, centrali
 
 ### MVVM (Model–View–ViewModel)
 
-No MVVM, a lógica está concentrada no ViewModel, responsável por gerenciar o estado da aplicação e sua sincronização com o Supabase. Essa abordagem apresentou fluxo de dados mais previsível, menor duplicação de lógica e melhor alinhamento com o modelo reativo do React, especialmente ao utilizar backend reativo.
+No MVVM, a lógica está concentrada no ViewModel, responsável por gerenciar o estado da aplicação e sua sincronização. Essa abordagem apresentou fluxo de dados mais previsível, menor duplicação de lógica e melhor alinhamento com o modelo reativo do React, especialmente ao utilizar backend reativo.
 
 ---
 
@@ -40,7 +40,7 @@ No MVVM, a lógica está concentrada no ViewModel, responsável por gerenciar o 
 
 A integração com o backend reativo evidenciou diferenças significativas entre as arquiteturas.
 
-No MVVM, a integração foi a mais direta, pois o ViewModel já centralizava o estado da aplicação. Os eventos automáticos recebidos do Supabase puderam ser incorporados diretamente ao estado, eliminando a necessidade de requisições adicionais ou lógica manual de sincronização.
+No MVVM, a integração foi a mais direta, pois o ViewModel já centralizava o estado da aplicação. Os eventos automáticos recebidos puderam ser incorporados diretamente ao estado, eliminando a necessidade de requisições adicionais ou lógica manual de sincronização.
 
 No MVP, a integração exigiu que o Presenter assumisse explicitamente o gerenciamento das subscriptions do backend reativo. Embora funcional, essa abordagem aumentou a complexidade do Presenter, que passou a acumular responsabilidades relacionadas ao fluxo de dados e ao ciclo de vida das conexões reativas.
 
