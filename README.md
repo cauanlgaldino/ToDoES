@@ -32,7 +32,7 @@ Na arquitetura MVP, a lógica principal foi deslocada para o Presenter, centrali
 
 ### MVVM (Model–View–ViewModel)
 
-No MVVM, a lógica ficou concentrada no ViewModel, responsável por gerenciar o estado da aplicação e sua sincronização com o Supabase. Essa abordagem apresentou fluxo de dados mais previsível, menor duplicação de lógica e melhor alinhamento com o modelo reativo do React, especialmente ao utilizar backend reativo.
+No MVVM, a lógica está concentrada no ViewModel, responsável por gerenciar o estado da aplicação e sua sincronização com o Supabase. Essa abordagem apresentou fluxo de dados mais previsível, menor duplicação de lógica e melhor alinhamento com o modelo reativo do React, especialmente ao utilizar backend reativo.
 
 ---
 
@@ -80,3 +80,4 @@ Projeto desenvolvido por:
 - Cauan Galdino  
 - Melissa Guedes  
 - Bianca Oliveira
+  
